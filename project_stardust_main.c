@@ -16,13 +16,15 @@ dit23245@go.uop.gr
 
 //Programmer created Functions
 
-//void Board(char **arr, int n, int m);
 char **Ship(int n, int m); //Allocates the memory needed for the game
 void Menu(void); //Prints the main menu
 void Boarding(int d, char **arr, int n, int m); //Spawns the enemies and obstacles "The stormtroopers board the ship with their 'supplies' (obstacles)"
 void MCS(char **arr, int n, int m); //Spawns the main characters like the player (Leia), Darth Vader and R2D2
 void PrintBoard(char **arr, int n, int m); //Prints the "Game Board"
-void move_leia(char **arr, char moves[3], int n, int m);
+void Help(char **arr, int n, int m); //Prints the board with no hidden tiles
+void move_obj(char **arr1, char *arr2[], char moves[], int n, int m); //Moves an object from pos 1 to pos 2
+int move_leia(char **arr, char moves[], int n, int m, int lifes); //Moves Leia according to the player's instructions
+
 
 
 //main START
@@ -30,8 +32,8 @@ int main(void)
 {
     srand(time(NULL));
 
-    int N, M, diff,i,j,k;
-    char **Tantive_IV,mov[3];
+    int N, M, diff, i, j, k, hp = 1, len, lvl = 1, flag = 0;
+    char **Tantive_IV, mov[7] = {0}, *ptr[2];
 
     printf("Salutations, Princess Leia...\nPlease input the starting size ( N x M ) of your ship:\n");
     scanf("%d%d",&N,&M);
@@ -59,8 +61,35 @@ int main(void)
     for (k = 0 ; k < 100 ; k++)
     {
         PrintBoard(Tantive_IV,N,M);
+        if (k == 0)
+        {
+            getchar();
+        }
+        printf("Level %d\n",lvl);
+        printf("Make your move(s) : ");
         fgets(mov,sizeof(mov),stdin);
-        move_leia(Tantive_IV,mov,N,M);
+        len = strlen(mov);
+        //puts(mov);
+
+        for (i = 0 ; i < len ; i++)
+        {
+            if (mov[i] == '>')
+            {
+                flag = 1;
+            }
+        }
+
+        if (flag == 0)
+        {
+            hp = move_leia(Tantive_IV,mov,N,M,hp);
+        }
+        else
+        {
+            ptr[0] = strtok(mov,">");
+            ptr[1] = strtok(NULL,"\0");
+            move_obj(Tantive_IV,ptr,mov,N,M);
+            flag = 0;
+        }
     }
 
     return 0;
@@ -75,7 +104,7 @@ char **Ship(int n, int m)
 
     arr=(char**)malloc(n * sizeof(char*)); //Allocates memory for the rows
 
-    if( arr == NULL ) //Checks if malloc returned NULL
+    if(arr == NULL) //Checks if malloc returned NULL
     {
         printf("\nError when allocating memory!\nTerminating...\n");
         exit(1); //If it has, the program terminates
@@ -454,7 +483,8 @@ void PrintBoard(char **arr, int n, int m)
 }
 //PrintBoard END
 
-/*void Board(char **arr, int n, int m)
+//Help START
+void Help(char **arr, int n, int m)
 {
     int i,j,cnt = 5,lp1,lp2;
     char c = 'A';
@@ -489,19 +519,36 @@ void PrintBoard(char **arr, int n, int m)
 
         for (j = 0 ; j < m ; j++)
         {   
-            printf(" %c",arr[i][j]);
+            if (arr[i][j] == '@')
+            {
+                printf(" %c",'@');
+            }
+            else if (arr[i][j] == 'R')
+            {
+                printf(" %c",'R');
+            }
+            else if (arr[i][j] == '#')
+            {
+                printf(" %c",'.');
+            }
+            else
+            {
+                printf(" %c",arr[i][j]);
+            }
         }
         printf("\n");
     }
     return;
 }
-*/
+//Help END
 
-//move Leia
-void move_leia(char **arr, char moves[3], int n, int m)
+//move_leia START
+int move_leia(char **arr, char moves[], int n, int m, int lifes)
 {
-    int i, j, lp1, lp2, life = 1;  
+    int i, j, k, l, lp1, lp2;  
     
+    l = strlen(moves);
+
     for (i = 0 ; i < n ; i++)
     {
         for (j = 0 ; j < m ; j++)
@@ -514,44 +561,55 @@ void move_leia(char **arr, char moves[3], int n, int m)
         }
     }
     
-    for (i = 0 ; i < 1 ; i++)
+    for (i = 0 ; i < l ; i++)
     {
-        if ((strncmp(moves+i,"L",1) == 0) || (strncmp(moves+i,"l",1) == 0))
+        //if ((strncmp(moves+i,"L",1) == 0) || (strncmp(moves+i,"l",1) == 0))
+        if ((moves[i] == 'L') || (moves[i] == 'l'))
         {
+            /*
+            for (k = 0 ; k < l ; k++)
+            {
+                if (moves[k] == '\n')
+                {
+                    moves[k] = 'l';
+                }
+            }
+            */
+
             if ((lp2 > 0) && (arr[lp1][lp2-1] != 'X'))
             {
                 if(arr[lp1][lp2-1] == 'R')
                 {
-                    printf("You won!\n");
                     arr[lp1][lp2-1] = 'L';
                     arr[lp1][lp2] = '#';
                     PrintBoard(arr,n,m);
+                    printf("You found R2D2 and secured the plans for the rebellion!\nYou won!\n");
                     exit(1);
                 }
                 else if(arr[lp1][lp2-1] == 'D')
                 {
-                    printf("Oh no.. Darth Vader got you!\nYou Lost the plans and the rebellion trembles before the might of Vader!\n");
                     arr[lp1][lp2-1] = 'D';
                     arr[lp1][lp2] = '#';
                     PrintBoard(arr,n,m);
+                    printf("Oh no.. Darth Vader got you!\nYou Lost the plans and the rebellion trembles before the might of Vader!\nYou lose!\n");
                     exit(1);
                 }
                 else if (arr[lp1][lp2-1] == '@')
                 {
-                    if (life == 1)
+                    if (lifes == 1)
                     {
-                        printf("Oh no! You stumbled upon a stormtrooper but fortunately you managed to knock him down.\n Get to R2D2 before they improve their aim!\n");
-                        life--;
                         arr[lp1][lp2-1] = 'L';
                         arr[lp1][lp2] = '#';
-                        PrintBoard(arr,n,m);
+                        printf("Oh no! You stumbled upon a stormtrooper but fortunately you managed to knock him down.\n Get to R2D2 before they improve their aim!\n");
+                        lifes--;
+                        lp2--;
                     }
-                    else  //There is a bug here which doesn't make you lose when you encounter a 2nd stormtrooper 
+                    else
                     {
-                        printf("Oh no... A stormtrooper managed to capture you!\nYou lose!\n");
                         arr[lp1][lp2-1] = '@';
                         arr[lp1][lp2] = '#';
                         PrintBoard(arr,n,m);
+                        printf("Oh no... A stormtrooper managed to capture you!\nYou lose!\n");
                         exit(1);
                     }
                 }
@@ -559,49 +617,61 @@ void move_leia(char **arr, char moves[3], int n, int m)
                 {
                     arr[lp1][lp2-1] = 'L';
                     arr[lp1][lp2] = '#';
+                    lp2--;
                 }
             }
             else
             {
-                printf("This move  is not possible.\n");
+                printf("This move is not possible.\n");
             }
         }
-        else if ((strncmp(moves+i,"R",1) == 0) || (strncmp(moves+i,"r",1) == 0))
+        //else if ((strncmp(moves+i,"R",1) == 0) || (strncmp(moves+i,"r",1) == 0))
+        else if ((moves[i] == 'R') || (moves[i] == 'r'))
         {
-            if ((lp2 < n + 1) && (arr[lp1][lp2+1] != 'X'))
+            /*
+            for (k = 0 ; k < l ; k++)
+            {
+                if (moves[k] == '\n')
+                {
+                    moves[k] = 'r';
+                }
+            }
+            */
+
+            if ((lp2 < m - 1) && (arr[lp1][lp2+1] != 'X'))
             {
                 if(arr[lp1][lp2+1] == 'R')
                 {
-                    printf("You won!\n");
                     arr[lp1][lp2+1] = 'L';
                     arr[lp1][lp2] = '#';
                     PrintBoard(arr,n,m);
+                    printf("You found R2D2 and secured the plans for the rebellion!\nYou won!\n");
                     exit(1);
                 }
                 else if(arr[lp1][lp2+1] == 'D')
                 {
-                    printf("Oh no.. Darth Vader got you!\nYou Lost the plans and the rebellion trembles before the might of Vader!\n");
                     arr[lp1][lp2+1] = 'D';
                     arr[lp1][lp2] = '#';
                     PrintBoard(arr,n,m);
+                    printf("Oh no... Darth Vader got you!\nYou Lost the plans and the rebellion trembles before the might of Vader!\nYou lose!\n");
                     exit(1);
                 }
                 else if (arr[lp1][lp2+1] == '@')
                 {
-                    if (life == 1)
+                    if (lifes == 1)
                     {
-                        printf("Oh no! You stumbled upon a stormtrooper but fortunately you managed to knock him down.\n Get to R2D2 before they improve their aim!\n");
-                        life--;
                         arr[lp1][lp2+1] = 'L';
                         arr[lp1][lp2] = '#';
-                        PrintBoard(arr,n,m);
+                        printf("Oh no! You stumbled upon a stormtrooper but fortunately you managed to knock him down.\n Get to R2D2 before they improve their aim!\n");
+                        lifes--;
+                        lp2++;
                     }
-                    else  //There is a bug here which doesn't make you lose when you encounter a 2nd stormtrooper
+                    else
                     {
-                        printf("Oh no... A stormtrooper managed to capture you!\nYou lose!\n");
                         arr[lp1][lp2+1] = '@';
                         arr[lp1][lp2] = '#';
                         PrintBoard(arr,n,m);
+                        printf("Oh no... A stormtrooper managed to capture you!\nYou lose!\n");
                         exit(1);
                     }
                 }
@@ -609,43 +679,61 @@ void move_leia(char **arr, char moves[3], int n, int m)
                 {
                     arr[lp1][lp2+1] = 'L';
                     arr[lp1][lp2] = '#';
+                    lp2++;
                 }
+            }
+            else
+            {
+                printf("This move is not possible.\n");
             }   
         }
-        else if ((strncmp(moves+i,"U",1) == 0) || (strncmp(moves+i,"u",1) == 0))
+        //else if ((strncmp(moves+i,"U",1) == 0) || (strncmp(moves+i,"u",1) == 0))
+        else if ((moves[i] == 'U') || (moves[i] == 'u'))
         {
+            /*
+            for (k = 0 ; k < l ; k++)
+            {
+                if (moves[k] == '\n')
+                {
+                    moves[k] = 'u';
+                }
+            }
+            */
+
             if ((lp1 > 0) && (arr[lp1-1][lp2] != 'X'))
             {
                 if (arr[lp1-1][lp2] == 'R')
                 {
-                    printf("You won!\n");
                     arr[lp1-1][lp2] = 'L';
                     arr[lp1][lp2] = '#';
+                    PrintBoard(arr,n,m);
+                    printf("You found R2D2 and secured the plans for the rebellion!\nYou won!\n");
                     exit(1);
                 }
                 else if (arr[lp1-1][lp2] == 'D')
                 {
-                    printf("Oh no.. Darth Vader got you!\nYou Lost the plans and the rebellion trembles before the might of Vader!\n");
                     arr[lp1-1][lp2] = 'D';
                     arr[lp1][lp2] = '#';
+                    PrintBoard(arr,n,m);
+                    printf("Oh no.. Darth Vader got you!\nYou Lost the plans and the rebellion trembles before the might of Vader!\nYou lose!\n");
                     exit(1);
                 }
                 else if (arr[lp1-1][lp2] == '@')
                 {
-                    if (life == 1)
+                    if (lifes == 1)
                     {
-                        printf("Oh no! You stumbled upon a stormtrooper but fortunately you managed to knock him down.\n Get to R2D2 before they improve their aim!\n");
-                        life--;
                         arr[lp1-1][lp2] = 'L';
                         arr[lp1][lp2] = '#';
-                        PrintBoard(arr,n,m);
+                        printf("Oh no! You stumbled upon a stormtrooper but fortunately you managed to knock him down.\n Get to R2D2 before they improve their aim!\n");
+                        lifes--;
+                        lp1--;
                     }
-                    else  //There is a bug here which doesn't make you lose when you encounter a 2nd stormtrooper
+                    else
                     {
-                        printf("Oh no... A stormtrooper managed to capture you!\nYou lose!\n");
                         arr[lp1-1][lp2] = '@';
                         arr[lp1][lp2] = '#';
                         PrintBoard(arr,n,m);
+                        printf("Oh no... A stormtrooper managed to capture you!\nYou lose!\n");
                         exit(1);
                     }
                 }
@@ -653,44 +741,62 @@ void move_leia(char **arr, char moves[3], int n, int m)
                 {
                     arr[lp1-1][lp2] = 'L';
                     arr[lp1][lp2] = '#';
+                    lp1--;
                 }
+            }
+            else
+            {
+                printf("This move is not possible.\n");
             }
               
         }
-        else if ((strncmp(moves+i,"D",1) == 0) || (strncmp(moves+i,"d",1) == 0))
+        //else if ((strncmp(moves+i,"D",1) == 0) || (strncmp(moves+i,"d",1) == 0))
+        else if ((moves[i] == 'D') || (moves[i] == 'd'))
         {
-            if (lp1 < m - 1 && arr[lp1+1][lp2] != 'X')
+            /*
+            for (k = 0 ; k < l ; k++)
+            {
+                if (moves[k] == '\n')
+                {
+                    moves[k] = 'd';
+                }
+            }
+            */
+
+            if (lp1 < n - 1 && arr[lp1+1][lp2] != 'X')
             {
                 if (arr[lp1+1][lp2] == 'R')
                 {
-                    printf("You won!\n");
                     arr[lp1+1][lp2] = 'L';
                     arr[lp1][lp2] = '#';
+                    PrintBoard(arr,n,m);
+                    printf("You found R2D2 and secured the plans for the rebellion!\nYou won!\n");
                     exit(1);
                 }
                 else if(arr[lp1+1][lp2] == 'D')
                 {
-                    printf("Oh no.. Darth Vader got you!\nYou Lost the plans and the rebellion trembles before the might of Vader!\n");
                     arr[lp1+1][lp2] = 'D';
                     arr[lp1][lp2] = '#';
+                    PrintBoard(arr,n,m);
+                    printf("Oh no.. Darth Vader got you!\nYou Lost the plans and the rebellion trembles before the might of Vader!\nYou lose!\n");
                     exit(1);
                 }
                 else if (arr[lp1][lp2-1] == '@')
                 {
-                    if (life == 1)
+                    if (lifes == 1)
                     {
-                        printf("Oh no! You stumbled upon a stormtrooper but fortunately you managed to knock him down.\n Get to R2D2 before they improve their aim!\n");
-                        life--;
                         arr[lp1+1][lp2] = 'L';
                         arr[lp1][lp2] = '#';
-                        PrintBoard(arr,n,m);
+                        printf("Oh no! You stumbled upon a stormtrooper but fortunately you managed to knock him down.\n Get to R2D2 before they improve their aim!\n");
+                        lifes--;
+                        lp1++;
                     }
-                    else  //There is a bug here which doesn't make you lose when you encounter a 2nd stormtrooper
+                    else
                     {
-                        printf("Oh no... A stormtrooper managed to capture you!\nYou lose!\n");
                         arr[lp1+1][lp2] = '@';
                         arr[lp1][lp2] = '#';
                         PrintBoard(arr,n,m);
+                        printf("Oh no... A stormtrooper managed to capture you!\nYou lose!\n");
                         exit(1);
                     }
                 }
@@ -698,9 +804,90 @@ void move_leia(char **arr, char moves[3], int n, int m)
                 {
                     arr[lp1+1][lp2] = 'L';
                     arr[lp1][lp2] = '#';
+                    lp1++;
                 }
             }
-        }    
+            else
+            {
+                printf("This move is not possible.\n");
+            }
+        }
+        else if ((moves[i] == 'H') || (moves[i] == 'h'))
+        {
+            printf("Hmmmm...\nHelp you need I see...\nFrail do not young one, help you shall I!\n");
+            Help(arr,n,m);
+            printf("\n");
+        }
+        else if ((moves[i] == 'X') || (moves[i] == 'x'))
+        {
+            printf("Exiting game...\n");
+            exit(1);
+        }
     }
+    return lifes;
 }
+//move_leia END
 
+//move_obj START
+void move_obj(char **arr1, char *arr2[], char moves[], int n, int m)
+{
+    int pi1, pj1, pi2, pj2, i, l;
+    char *c;
+
+    //printf("%s\n%s\n",arr2[0],arr2[1]);
+    l = strlen(moves);
+    if ((moves[0] >= 'A') && (moves[0] <= 'Z')) //Checks if the first pos is in the space of [A,Z]
+    {
+        *c = moves[0] - 16; //Uppercase Letter - 16 = Number that corresponds
+        pi1 = atoi(c); //From String to Integer
+    }
+    else if ((moves[0] >= 'a') && (moves[0] <= 'z')) //Checks if the first pos is in the space of [a,z]
+    {
+        *c = moves[0] - 48; //Lowercase Letter - 48 = Number that corresponds
+        pi1 = atoi(c); //From String to Integer
+    }
+
+    *c = moves[1];
+    pj1 = atoi(c); //From String to Integer
+
+    if ((moves[3] >= 'A') && (moves[3] <= 'Z')) //Checks if the second pos is in the space of [A,Z]
+    {
+        *c = moves[3] - 16; //Uppercase Letter - 16 = Number that corresponds
+        pi2 = atoi(c); //From String to Integer
+    }
+    else if ((moves[3] >= 'a') && (moves[3] <= 'z')) //Checks if the second pos is in the space of [a,z]
+    {
+        *c = moves[3] - 48; //Lowercase Letter - 48 = Number that corresponds
+        pi2 = atoi(c); //From String to Integer
+    }
+
+    *c = moves[4];
+    pj2 = atoi(c); //From String to Integer
+
+    //printf("[%d,%d]>[%d,%d]\n",pi1,pj1,pi2,pj2);
+
+    pi1--;
+    pj1--;
+    pi2--;
+    pj2--;
+
+    //printf("[%d,%d]>[%d,%d]\n",pi1,pj1,pi2,pj2);
+
+    if ((arr1[pj2][pi2] != 'X') && (arr1[pj2][pi2] != 'R') && (arr1[pj2][pi2] != 'L') && (arr1[pj2][pi2] != '@') && (arr1[pj2][pi2] != 'D'))
+    {
+        arr1[pj2][pi2] = 'X';
+        arr1[pj1][pi1] = '#';
+        printf("You've succesfully used the force to move an object out of your way!\n");
+    }
+    else if (arr1[pi1][pj2] == '#')
+    {
+        printf("There is not an object there for you to move...\nPlease try another position\n");
+    }
+    else
+    {
+        printf("There is something in the way and you cannot move the object to that position...\nPlease try another position\n");
+    }
+
+    return;
+}
+//mov_obj END
