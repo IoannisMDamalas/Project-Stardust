@@ -149,7 +149,7 @@ level_creation:
             if (flag == 0) //If there isn't a '>' the player can move normally.
             {
                 hp = leia_moves(Tantive_IV, mov, N, M, hp, &f);
-                //hp = move_storm(Tantive_IV, N, M, enemies, hp, en);
+                hp = move_storm(Tantive_IV, N, M, enemies, hp, en);
             }
             else
             {
@@ -175,7 +175,7 @@ level_creation:
 
     return 0;
 }
-//mIOain END
+//main END
 
 //Ship START
 char** Ship(int n, int m)
@@ -1601,7 +1601,7 @@ int move_storm(char** arr, int n, int m, stormtrooper* enem, int lifes, int en)
     {
 
 
-        if (enem[i].dir = 'U')
+        if (enem[i].dir == 'U')
         {
         UP:
             x = enem[i].x;
@@ -1614,7 +1614,7 @@ int move_storm(char** arr, int n, int m, stormtrooper* enem, int lifes, int en)
                 enem[i].x = x;
                 enem[i].y = y;
             }
-            else if (arr[y - 1][x] == 'L')
+            else if ((y > 0) && (arr[y - 1][x] == 'L'))
             {
                 if (lifes == 1)
                 {
@@ -1641,7 +1641,7 @@ int move_storm(char** arr, int n, int m, stormtrooper* enem, int lifes, int en)
                 goto DOWN;
             }
         }
-        else if (enem[i].dir = 'D')
+        else if (enem[i].dir == 'D')
         {
         DOWN:
             x = enem[i].x;
@@ -1654,7 +1654,7 @@ int move_storm(char** arr, int n, int m, stormtrooper* enem, int lifes, int en)
                 enem[i].x = x;
                 enem[i].y = y;
             }
-            else if (arr[y + 1][x] == 'L')
+            else if ((y < n - 1) && (arr[y + 1][x] == 'L'))
             {
                 if (lifes == 1)
                 {
@@ -1681,7 +1681,7 @@ int move_storm(char** arr, int n, int m, stormtrooper* enem, int lifes, int en)
                 goto UP;
             }
         }
-        else if (enem[i].dir = 'L')
+        else if (enem[i].dir == 'L')
         {
         LEFT:
             x = enem[i].x;
@@ -1694,7 +1694,7 @@ int move_storm(char** arr, int n, int m, stormtrooper* enem, int lifes, int en)
                 enem[i].x = x;
                 enem[i].y = y;
             }
-            else if (arr[y][x - 1] == 'L')
+            else if ((x > 0) && (arr[y][x - 1] == 'L'))
             {
                 if (lifes == 1)
                 {
@@ -1721,7 +1721,7 @@ int move_storm(char** arr, int n, int m, stormtrooper* enem, int lifes, int en)
                 goto RIGHT;
             }
         }
-        else if (enem[i].dir = 'R')
+        else if (enem[i].dir == 'R')
         {
         RIGHT:
             x = enem[i].x;
@@ -1734,7 +1734,7 @@ int move_storm(char** arr, int n, int m, stormtrooper* enem, int lifes, int en)
                 enem[i].x = x;
                 enem[i].y = y;
             }
-            else if (arr[y][x + 1] == 'L')
+            else if ((x < m - 1) && (arr[y][x + 1] == 'L'))
             {
                 if (lifes == 1)
                 {
